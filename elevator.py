@@ -9,9 +9,10 @@ logger = logging.getLogger(__name__)
 
 class Elevator:
 
-    def __init__(self, name: str, status: Status = None, no_of_persons: int = 10) -> None:
+    def __init__(self, name: str, total_floors: int, status: Status = None, no_of_persons: int = 10) -> None:
         self.name = name
         self.status = status or Status.IDLE
+        self.total_number_of_floors = total_floors
         self.direction = None
         self.passenger_direction = None
 

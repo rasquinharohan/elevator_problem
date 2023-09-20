@@ -26,4 +26,3 @@ class Passenger:
         self.end_time = end_time
         self.is_trip_complete = True
 
-

@@ -1,13 +1,14 @@
 from collections import deque
+from typing import List
 
 from elevator import Elevator
 from enums import Status
 from passenger import Passenger
-from typing import List
+
 
 class Dispatcher:
     def __init__(self, no_of_floors: int) -> None:
-        self.no_of_floors = int
+        self.no_of_floors = no_of_floors
         self.elevators = list()
         self.elevator_info = dict() # for each elevator, store a queue of passengers for every floor
 

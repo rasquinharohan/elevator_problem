@@ -24,6 +24,7 @@ class ElevatorSet:
         self.no_of_elevators = no_of_elevators
         self.max_elevator_passengers = max_passengers_per_elevator
         self.run_timer = 0
+        self.total_floors = no_of_floors
 
         self.request_list = request_list
         self.request_element = 0
@@ -32,7 +33,7 @@ class ElevatorSet:
 
     def __create_elevators(self) -> None:
         for i in range(self.no_of_elevators):
-            self.scheduler.add_elevator(Elevator(name=str(i+1), status=Status.IDLE, no_of_persons=self.max_elevator_passengers))
+            self.scheduler.add_elevator(Elevator(name=str(i+1), total_floors=self.total_floors, status=Status.IDLE, no_of_persons=self.max_elevator_passengers))
 
     def get_next_scheduled_requests(self):
         i = self.request_element

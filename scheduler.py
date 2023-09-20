@@ -3,7 +3,7 @@ from collections import deque
 from typing import List
 
 from elevator import Elevator
-from enums import Status, Direction
+from enums import Direction
 from dispatcher import Dispatcher
 from passenger import Passenger
 
