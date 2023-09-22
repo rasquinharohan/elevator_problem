@@ -1,8 +1,8 @@
 from typing import List, Dict
 
-from elevator import Elevator
-from enums import Status, Direction
-from passenger import Passenger
+from src.elevator import Elevator
+from common.enums import Status, Direction
+from src.passenger import Passenger
 
 
 class ElevatorPassengerQueue:
