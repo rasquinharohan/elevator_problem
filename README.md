@@ -1,10 +1,7 @@
 # elevator_problem
 
 Setup:
-- At start-up, each elevator is initialized (using elevator class) with some basic attributes like the below:
-    - Provide number of elevators, number of floors and max passengers per elevator.
-    - Provide list of requests.
-
+In main.py, provide details like number of elevators, no of floors, max passengers per elevator and a list of requests.
 
 Assumptions:
 - Person enters elevator bay, provides destination floor.
@@ -15,7 +12,4 @@ Assumptions:
     - Elevator continues to move in that direction till its, a) idle b) reached the top floor or bottom floor
  
 
-The scheduling methodology went through multiple iterations. In the end the above method was chosen as:
-1. this prevents starving requests
-2. simplest form of scheduling algorithm
-The issue with this scheduling method is that it causes longer wait times as the elevators need to keep moving in up and down
+The scheduling methodology went through multiple iterations. In the end the above method was chosen as it causes minimum to no starvation, however we are going to add more wait-times for passengers as the elevators need to finish moving in one direction and then reset to move in opposite direction.
