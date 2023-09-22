@@ -10,7 +10,7 @@ from typing import List, Dict
 
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 class Building:
@@ -98,7 +98,7 @@ class Building:
                 self.passengers.extend(passengers)
                 self.scheduler.schedule_elevator(passengers)
 
-            self.dispatcher.dispatch(run_timer=self.run_timer)
+            self.dispatcher.dispatch(run_timer=self.run_timer, scheduler=self.scheduler)
 
             logger.debug('---------- TIMER: {0} ----------------'.format(self.run_timer))
             logger.debug(self.scheduler)

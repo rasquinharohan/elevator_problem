@@ -21,7 +21,10 @@ class Scheduler:
     def __get_elevator_pick_up_time(self, elevator: Elevator, pick_up_floor: int, pick_up_direction: Direction):
         # function to get how much time it will for the elevator to pick up the passenger.
 
-        if elevator.is_idle():
+        if elevator.is_at_max_capacity():
+            return sys.maxsize
+
+        elif elevator.is_idle():
             # in this case, elevator has to move to pick up floor
             return abs(pick_up_floor - elevator.at_floor())
 
