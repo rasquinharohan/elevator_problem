@@ -1,7 +1,7 @@
 from typing import List, Dict
 
-from src.elevator import Elevator
 from common.enums import Status, Direction
+from src.elevator import Elevator
 from src.passenger import Passenger
 
 
@@ -139,7 +139,7 @@ class Dispatcher:
             if not elevator.is_idle():
                 elevator.update_at_floor()
 
-    def dispatch(self, run_timer: int):
+    def dispatch(self, run_timer: int, scheduler):
         for elevator in self.elevators:
             if not elevator.is_idle():
                 elevator.drop_passengers(run_timer)
@@ -151,8 +151,12 @@ class Dispatcher:
                     if elevator.is_moving_in_pass_direction() and elevator_pass_q.get(elevator.at_floor(), None):
                         passenger_q = elevator_pass_q.pop(elevator.at_floor())
                         for passenger in passenger_q:
-                            # TODO: need to check for when elevator is full
-                            elevator.add_passenger(passenger, run_timer)
+                            if elevator.is_at_max_capacity():
+                                # elevator arrived to pick-up passenger but was full.
+                                # so we need to re-schedule the passenger
+                                scheduler.schedule_elevator([passenger])
+                            else:
+                                elevator.add_passenger(passenger, run_timer)
 
                 self.update_elevator_status(elevator=elevator)
 
