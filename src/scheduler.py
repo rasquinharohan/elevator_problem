@@ -26,7 +26,17 @@ class Scheduler:
             return abs(pick_up_floor - elevator.at_floor())
 
         elif pick_up_direction == Direction.UP:
-            if elevator.passenger_direction == pick_up_direction:
+            if elevator.passenger_direction == pick_up_direction and elevator.direction != pick_up_direction:
+                # elevator is moving DOWN to pick up the passengers and then move UP
+                if pick_up_floor <= elevator.at_floor():
+                    # in this case the elevator will continue to move DOWN till it reaches the passenger
+                    return abs(pick_up_floor - elevator.at_floor())
+                else:
+                    # this is worst case, i.e we have to assume the elevator could go all the way to 1st level
+                    # to pick up a queued passenger and then come back UP to pick the passenger
+                    return abs(1 - elevator.at_floor()) + pick_up_floor
+
+            elif elevator.passenger_direction == pick_up_direction:
                 if pick_up_floor >= elevator.at_floor():
                     # in-same direction and passenger at floor along the way
                     return pick_up_floor - elevator.at_floor()
