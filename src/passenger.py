@@ -1,4 +1,4 @@
-from enums import Direction
+from common.enums import Direction
 
 class Passenger:
     def __init__(self, id: str, start_floor: int, end_floor: int, start_time: int) -> None:

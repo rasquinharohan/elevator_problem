@@ -1,5 +1,5 @@
-from enums import Status, Direction
-from passenger import Passenger
+from common.enums import Status, Direction
+from src.passenger import Passenger
 
 import logging
 logger = logging.getLogger(__name__)

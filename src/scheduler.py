@@ -1,10 +1,10 @@
 import sys
 from typing import List
 
-from elevator import Elevator
-from enums import Direction
-from dispatcher import Dispatcher
-from passenger import Passenger
+from src.elevator import Elevator
+from common.enums import Direction
+from src.dispatcher import Dispatcher
+from src.passenger import Passenger
 
 import logging
 
