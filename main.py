@@ -1,8 +1,11 @@
 from scheduler import Scheduler
 from elevator import Elevator
 from passenger import Passenger
+from dispatcher import Dispatcher
 from enums import Status
 
+import datetime
+import pandas as pd
 from typing import List, Dict
 
 import logging
@@ -10,17 +13,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-# def elevator_scheduler(passenger_entries: List[Passenger], scheduler: Scheduler):
-#     run_timer = 0
-
-#     while True:
-#         scheduler.schedule_elevator()
-
-
-class ElevatorSet:
+class Building:
 
     def __init__(self, no_of_elevators: int, no_of_floors: int, max_passengers_per_elevator: int, request_list: List[Dict]) -> None:
-        self.scheduler = Scheduler(no_of_floors=no_of_floors)
+        self.dispatcher = Dispatcher(no_of_floors=no_of_floors)
+        self.scheduler = Scheduler(dispatcher=self.dispatcher)
+
         self.no_of_elevators = no_of_elevators
         self.max_elevator_passengers = max_passengers_per_elevator
         self.run_timer = 0
@@ -29,11 +27,16 @@ class ElevatorSet:
         self.request_list = request_list
         self.request_element = 0
 
+        self.passengers = []
+
+        self.elevator_states = pd.DataFrame()
         self.__create_elevators()
 
     def __create_elevators(self) -> None:
         for i in range(self.no_of_elevators):
-            self.scheduler.add_elevator(Elevator(name=str(i+1), total_floors=self.total_floors, status=Status.IDLE, no_of_persons=self.max_elevator_passengers))
+            self.dispatcher.add_elevator(Elevator(name=str(i+1), total_floors=self.total_floors, status=Status.IDLE, no_of_persons=self.max_elevator_passengers))
+
+        self.elevator_states = self.elevator_states.reindex(columns=['RunTimer'] + ['Elevator {}'.format(i+1) for i in range(self.no_of_elevators)])
 
     def get_next_scheduled_requests(self):
         i = self.request_element
@@ -45,23 +48,75 @@ class ElevatorSet:
         self.request_element = i
         return timer_request
 
+    def are_all_requests_completed(self):
+        return self.request_element >= len(self.request_list)
+
+    def record_elevator_state(self):
+        state = dict(RunTimer=self.run_timer)
+        for elevator in self.dispatcher.elevators:
+            state['Elevator {}'.format(elevator.name)] = elevator.at_floor()
+        self.elevator_states = self.elevator_states.append(state, ignore_index = True)
+
+    def print_passenger_stats(self):
+        passenger_state = pd.DataFrame(dict(
+            Name=pd.Series(dtype='str'),
+            StartTime=pd.Series(dtype='int'),
+            PickUpTime=pd.Series(dtype='int'),
+            EndTime=pd.Series(dtype='int'),
+            WaitTime=pd.Series(dtype='int'),
+            TotalTime=pd.Series(dtype='int'),
+            TripCompleted=pd.Series(dtype='bool')))
+
+        passenger_data_rows = []
+        for passenger in self.passengers:
+            passenger_data_rows.append(dict(
+                Name=passenger.id, StartTime=passenger.start_time, PickUpTime=passenger.pick_up_time,
+                EndTime=passenger.end_time, WaitTime=passenger.total_wait_time(), TotalTime=passenger.total_wait_time(),
+                TripCompleted=passenger.is_trip_complete
+            ))
+
+        passenger_state = passenger_state.append(passenger_data_rows, ignore_index=True)
+
+        logger.debug('--------------- PASSENGER STATS: MIN ---------------')
+        logger.debug(passenger_state[['PickUpTime', 'WaitTime', 'TotalTime']].min())
+        logger.debug('--------------- PASSENGER STATS: MAX ---------------')
+        logger.debug(passenger_state[['PickUpTime', 'WaitTime', 'TotalTime']].max())
+        logger.debug('--------------- PASSENGER STATS: MEAN --------------')
+        logger.debug(passenger_state[['PickUpTime', 'WaitTime', 'TotalTime']].mean())
+        passenger_state.to_csv('./outputs/passenger_states_{}.csv'.format(datetime.datetime.now().strftime('%Y%m%d_%H%M%S')), index=False)
+
+    def write_stats(self):
+        self.elevator_states.to_csv('./outputs/elevator_states_{}.csv'.format(datetime.datetime.now().strftime('%Y%m%d_%H%M%S')), index=False)
+
     def schedule(self):
         while True:
+            self.dispatcher.move_elevators()
+
             req_list = self.get_next_scheduled_requests()
             if req_list:
-                self.scheduler.schedule_elevator([Passenger(req['id'], req['source'], req['dest'], self.run_timer) for req in req_list])
+                passengers = [Passenger(req['id'], req['source'], req['dest'], self.run_timer) for req in req_list]
+                self.passengers.extend(passengers)
+                self.scheduler.schedule_elevator(passengers)
 
-            self.scheduler.dispatch(self.run_timer)
+            self.dispatcher.dispatch(run_timer=self.run_timer)
 
-            print('---------- TIMER: {0} ----------------'.format(self.run_timer))
-            print(self.scheduler)
-            print('--------------------------------------')
+            logger.debug('---------- TIMER: {0} ----------------'.format(self.run_timer))
+            logger.debug(self.scheduler)
+            self.record_elevator_state()
+            logger.debug('--------------------------------------')
             self.run_timer += 1
+
+            if self.dispatcher.are_all_elevators_idle() and self.are_all_requests_completed():
+                self.print_passenger_stats()
+                self.write_stats()
+                return
 
 
 
 if __name__ == '__main__':
-    s = ElevatorSet(4, 100, 10, [dict(time=2, id='pass1', source=1, dest=51),
-                                 dict(time=2, id='pass2', source=1, dest=37),
-                                 dict(time=10, id='pass3', source=20, dest=1)])
+    s = Building(2, 50, 10, [dict(time=2, id='pass1', source=1, dest=37),
+                            dict(time=2, id='pass2', source=2, dest=16),
+                            dict(time=10, id='pass3', source=20, dest=1),
+                            dict(time=14, id='pass4', source=38, dest=48),
+                            dict(time=17, id='pass5', source=26, dest=5)])
     s.schedule()
